@@ -3,10 +3,11 @@ import ExploreBtn from "@/components/ExploreBtn"
 import { IEvent } from "@/database"
 import { cacheLife } from "next/cache"
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// Use VERCEL_URL in production, fallback to NEXT_PUBLIC_BASE_URL or localhost
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
 const Page = async () => {
-  // Cache this page for hours — events don't change that frequently
   'use cache';
   cacheLife('hours');
 
@@ -22,10 +23,8 @@ const Page = async () => {
 
       <div className="mt-20 space-y-7">
         <h3>Featured Events</h3>
-
         <ul className="events">
           {events && events.length > 0 && events.map((event: IEvent) => (
-            // list-none removes default bullet point styling
             <li key={event.title} className="list-none">
               <EventCard {...event}/>
             </li>
