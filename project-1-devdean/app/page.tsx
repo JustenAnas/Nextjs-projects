@@ -3,24 +3,30 @@ import ExploreBtn from "@/components/ExploreBtn"
 import { IEvent } from "@/database"
 import { cacheLife } from "next/cache"
 
-// Use VERCEL_URL in production, fallback to NEXT_PUBLIC_BASE_URL or localhost
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 const Page = async () => {
-  'use cache';
-  cacheLife('hours');
+  "use cache";
+  cacheLife("hours");
 
-  const response = await fetch(`${BASE_URL}/api/events`);
-  const { events } = await response.json();
+  let events = [];
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/events`);
+    if (response.ok) {
+      const data = await response.json();
+      events = data.events || [];
+    }
+  } catch (error) {
+    console.error("Failed to fetch events:", error);
+  }
 
   return (
     <section>
-      <h1 className="text-center">The Hub for Every Dev <br/> Event You Can't Miss</h1>
+      <h1 className="text-center">The Hub for Every Dev <br/> Event You Can not Miss</h1>
       <p className="text-center mt-5">Hackathons , Meetups and Conferences , All in One Place</p>
-
       <ExploreBtn/>
-
       <div className="mt-20 space-y-7">
         <h3>Featured Events</h3>
         <ul className="events">
