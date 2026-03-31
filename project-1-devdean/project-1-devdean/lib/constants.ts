@@ -1,17 +1,6 @@
 // lib/constants.ts
 
-// Type definition for an event item
-export type EventItem = {
-  title: string;
-  image: string;
-  slug: string;
-  location: string;
-  date: string; // e.g., "2026-05-10"
-  time: string; // e.g., "10:00 AM - 6:00 PM"
-};
-
-// Static list of events used for seeding or fallback display
-export const events: EventItem[] = [
+export const events = [
   {
     title: "JSConf India 2026",
     image: "/images/event1.png",
@@ -51,7 +40,5 @@ export const events: EventItem[] = [
     location: "Pune, India",
     date: "2026-09-20",
     time: "10:00 AM - 6:00 PM"
-  }
+  } 
 ];
-
-export default events;

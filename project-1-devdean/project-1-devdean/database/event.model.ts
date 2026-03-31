@@ -77,7 +77,6 @@ const EventSchema = new Schema<IEvent>(
       type: String,
       required: [true, "Title is required"],
       trim: true,
-      maxlength: [100, "Title cannot exceed 100 characters"], // from tutorial
     },
 
     // Populated by the pre-save hook; must not be set manually.
@@ -91,13 +90,11 @@ const EventSchema = new Schema<IEvent>(
       type: String,
       required: [true, "Description is required"],
       trim: true,
-      maxlength: [1000, "Description cannot exceed 1000 characters"], // from tutorial
     },
     overview: {
       type: String,
       required: [true, "Overview is required"],
       trim: true,
-      maxlength: [500, "Overview cannot exceed 500 characters"], // from tutorial
     },
     image: {
       type: String,
@@ -169,11 +166,6 @@ const EventSchema = new Schema<IEvent>(
   { timestamps: true } // auto-manages createdAt / updatedAt
 );
 
-// ─── Indexes ──────────────────────────────────────────────────────────────────
-
-// Compound index for common queries filtering by date and mode
-EventSchema.index({ date: 1, mode: 1 });
-
 // ─── Pre-save Hook ────────────────────────────────────────────────────────────
 
 /**
@@ -182,19 +174,23 @@ EventSchema.index({ date: 1, mode: 1 });
  *  - Date   : normalised to YYYY-MM-DD (ISO calendar date).
  *  - Time   : normalised to HH:MM 24-hour format.
  */
-EventSchema.pre("save", function () {
+EventSchema.pre("save", function (next) {
   try {
     if (this.isModified("title")) {
       this.slug = generateSlug(this.title);
     }
+
     if (this.isModified("date")) {
-      this.date = normalizeDate(this.date as string);
+      this.date = normalizeDate(this.date);
     }
+
     if (this.isModified("time")) {
-      this.time = normalizeTime(this.time as string);
+      this.time = normalizeTime(this.time);
     }
+
+    next();
   } catch (err) {
-    throw err;
+    next(err as Error);
   }
 });
 

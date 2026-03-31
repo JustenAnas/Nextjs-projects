@@ -8,6 +8,8 @@ import { PostHogProvider } from "./providers";
 import { Suspense } from "react";
 import { PostHogPageView } from "./PostHogPageView";
 
+// ─── Fonts ────────────────────────────────────────────────────────────────────
+
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const schibstedGrotesk = Schibsted_Grotesk({
@@ -20,10 +22,14 @@ const martianMono = Martian_Mono({
   subsets: ["latin"],
 });
 
+// ─── Metadata ─────────────────────────────────────────────────────────────────
+
 export const metadata: Metadata = {
   title: "DevEvent",
-  description: "The Hub for every Dev Event you  mustn't miss!",
+  description: "The Hub for every Dev Event you mustn't miss!",
 };
+
+// ─── Root Layout ──────────────────────────────────────────────────────────────
 
 export default function RootLayout({
   children,
@@ -31,10 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      
-    >
+    <html lang="en">
       <body className={cn(
         "min-h-screen",
         "antialiased",
@@ -44,30 +47,35 @@ export default function RootLayout({
         geist.variable,
       )}>
         <PostHogProvider>
+          {/* PostHogPageView must be inside Suspense — it uses useSearchParams internally */}
           <Suspense fallback={null}>
             <PostHogPageView />
           </Suspense>
-          <Navbar/>
-        <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
-          <LightRays
-            raysOrigin="top-center-offset"
-            raysColor="#5dfeca"
-            raysSpeed={0.5}
-            lightSpread={0.9}
-            rayLength={1.4}
-            followMouse={true}
-            mouseInfluence={0.02}
-            noiseAmount={0}
-            distortion={0}
-            className="custom-rays"
-            pulsating={false}
-            fadeDistance={1}
-            saturation={1}
-          />
-        </div>
-        <main>
-          {children}
-        </main>
+
+          <Navbar />
+
+          {/* Background LightRays effect — z-[-1] keeps it behind all content */}
+          <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
+            <LightRays
+              raysOrigin="top-center-offset"
+              raysColor="#5dfeca"
+              raysSpeed={0.5}
+              lightSpread={0.9}
+              rayLength={1.4}
+              followMouse={true}
+              mouseInfluence={0.02}
+              noiseAmount={0}
+              distortion={0}
+              className="custom-rays"
+              pulsating={false}
+              fadeDistance={1}
+              saturation={1}
+            />
+          </div>
+
+          <main>
+            {children}
+          </main>
         </PostHogProvider>
       </body>
     </html>
