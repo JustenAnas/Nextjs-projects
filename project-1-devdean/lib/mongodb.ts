@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
+// Validate MongoDB URI at module load time — fail fast before any connection attempt
 if (!MONGODB_URI) {
   throw new Error(
     "Please define the MONGODB_URI environment variable in .env.local"
@@ -48,7 +49,7 @@ if (!global._mongoose) {
  * Subsequent calls within the same process return the cached connection
  * immediately without re-connecting.
  */
-export async function connectToDatabase(): Promise<typeof mongoose> {
+export async function connectDB(): Promise<typeof mongoose> {
   // Fast path — already connected
   if (cached.conn) {
     return cached.conn;
@@ -78,3 +79,8 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
   return cached.conn;
 }
+
+// Also export as default to support both import styles:
+// import connectDB from "@/lib/mongodb"
+// import { connectDB } from "@/lib/mongodb"
+export default connectDB;

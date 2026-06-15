@@ -12,10 +12,11 @@ export interface IBooking extends Document {
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 /**
- * A simple RFC-5322-compatible pattern sufficient for most valid email addresses.
+ * RFC-5322 compliant email regex — more thorough than a simple pattern,
+ * handles edge cases like subdomains, special characters, etc.
  * Complex edge-case validation is intentionally deferred to the application layer.
  */
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
 const BookingSchema = new Schema<IBooking>(
   {
@@ -42,23 +43,43 @@ const BookingSchema = new Schema<IBooking>(
   { timestamps: true } // auto-manages createdAt / updatedAt
 );
 
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+
+// Compound index for querying event bookings sorted by date
+BookingSchema.index({ eventId: 1, createdAt: -1 });
+
+// Index on email for fast user booking lookups
+BookingSchema.index({ email: 1 });
+
+// Unique compound index — prevents duplicate bookings (same email + same event)
+BookingSchema.index(
+  { eventId: 1, email: 1 },
+  { unique: true, name: "uniq_event_email" }
+);
+
 // ─── Pre-save Hook ────────────────────────────────────────────────────────────
 
 /**
  * Before persisting a booking, verify the referenced Event actually exists.
  * This prevents orphaned bookings caused by stale or incorrect eventIds.
- * Only runs when eventId is new or changed to avoid redundant DB lookups.
+ * Runs when eventId is new or changed to avoid redundant DB lookups.
  */
 BookingSchema.pre("save", async function () {
-  if (this.isModified("eventId")) {
-    const exists = await mongoose
-      .model("Event")
-      .exists({ _id: this.eventId });
+  // Check on new documents too (isNew) — not just modifications
+  if (this.isModified("eventId") || this.isNew) {
+    try {
+      const exists = await mongoose
+        .model("Event")
+        .exists({ _id: this.eventId });
 
-    if (!exists) {
-      throw new Error(
-        `Cannot create booking: Event "${this.eventId}" does not exist.`
-      );
+      if (!exists) {
+        throw new Error(
+          `Cannot create booking: Event "${this.eventId}" does not exist.`
+        );
+      }
+    } catch (err) {
+      // Re-throw so Mongoose surfaces it as a validation error
+      throw err;
     }
   }
 });
